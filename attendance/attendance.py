@@ -278,6 +278,9 @@ def calculate_attendance(definition: dict, vote_events: list[dict], votes: list[
         if present_share is not None:
             row["present_share"] = round(present_share, 10)
 
+        if person.get("image"):
+            row["extras"] = {"image": person["image"]}
+
         output.append(row)
 
     return output

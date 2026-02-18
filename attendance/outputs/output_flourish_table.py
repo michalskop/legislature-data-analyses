@@ -39,6 +39,7 @@ def main() -> None:
     fieldnames = [
         "id",
         "name",
+        "photo",
         "candidate_list",
         "group",
         "constituency",
@@ -58,6 +59,7 @@ def main() -> None:
             writer.writerow({
                 "id":                   row["person_id"],
                 "name":                 row.get("name") or "",
+                "photo":                (row.get("extras") or {}).get("image") or "",
                 "candidate_list":       newest_name(orgs, "candidate_list"),
                 "group":                newest_name(orgs, "group"),
                 "constituency":         newest_name(orgs, "constituency"),

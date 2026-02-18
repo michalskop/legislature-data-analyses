@@ -228,3 +228,24 @@ class TestOrganizations:
                 assert isinstance(org["id"], str) and org["id"], (
                     f"Person {row['person_id']}: org with invalid id: {org}"
                 )
+
+
+class TestExtras:
+    def test_image_url_when_present(self, output_data):
+        """If extras.image is set it must be a non-empty string."""
+        for row in output_data:
+            extras = row.get("extras") or {}
+            image = extras.get("image")
+            if image is not None:
+                assert isinstance(image, str) and image, (
+                    f"Person {row['person_id']}: extras.image must be a non-empty string"
+                )
+
+    def test_some_persons_have_image(self, output_data):
+        """At least one person should carry an image URL from the persons input."""
+        images = [
+            row["extras"]["image"]
+            for row in output_data
+            if (row.get("extras") or {}).get("image")
+        ]
+        assert len(images) > 0, "No person has an image URL – check that persons input includes 'image' fields"
