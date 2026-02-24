@@ -14,12 +14,18 @@ legislature-data-analyses/
 │  │  └─ output_flourish_table.py # Flourish CSV formatter
 │  └─ tests/
 │     └─ test_attendance.py
-└─ vote-corrections/
-   ├─ vote_corrections.py          # main analysis script
+├─ vote-corrections/
+│  ├─ vote_corrections.py          # main analysis script
+│  ├─ outputs/
+│  │  └─ output_flourish_table.py  # Flourish CSV formatter
+│  └─ tests/
+│     └─ test_vote_corrections.py
+└─ wpca/
+   ├─ wpca.py                      # main analysis script
    ├─ outputs/
    │  └─ output_flourish_table.py  # Flourish CSV formatter
    └─ tests/
-      └─ test_vote_corrections.py
+      └─ test_wpca.py
 ```
 
 ## Analyses
@@ -100,4 +106,67 @@ python vote-corrections/outputs/output_flourish_table.py \
 
 ```bash
 pytest vote-corrections/tests/
+```
+
+---
+
+### WPCA (Weighted PCA)
+
+Per-member ideological positions derived from weighted principal component analysis of the full voting record. Two vote-event weights are applied before PCA: **w1** (participation fraction) and **w2** (split balance, 1 = 50/50, 0 = unanimous). Optionally computes rolling time-interval projections using the global eigenbasis.
+
+**Inputs (all CLI arguments):**
+
+| Argument | Description |
+|---|---|
+| `--definition` | `wpca-definition.dt.analyses` JSON (lo_limit, vote option encoding, optional rotation and time_interval) |
+| `--votes` | `votes-table.dt` CSV |
+| `--vote-events` | `vote-events.dt` JSON |
+| `--persons` | `all-members.dt.analyses` JSON or CSV |
+| `--output` | output `wpca.dt.analyses` JSON path |
+| `--output-time` | (optional) output `wpca-time.dt.analyses` JSON path; requires `time_interval` in definition |
+
+**Output fields per person (`wpca.dt.analyses`):** `person_id`, `name`, `given_names`, `family_names`, `organizations`, `dims` (array, length = n_dims), `weight`, `included`, `since`, `until`, `extras`
+
+**Time output fields per person-period (`wpca-time.dt.analyses`):** `person_id`, `period_index`, `period_start`, `period_end`, `period_label`, `dims`, `included`
+
+**Flourish output:** `person_id`, `name`, `given_names`, `family_names`, `group`, `candidate_list`, `constituency`, `dim1`, `dim2`, `dim3`, `weight`, `included`
+
+```bash
+# Run from the legislature-data/ monorepo root
+python legislature-data-analyses/wpca/wpca.py \
+  --definition /path/to/wpca_definition.json \
+  --votes /path/to/votes.csv \
+  --vote-events /path/to/vote_events.json \
+  --persons /path/to/all_members.json \
+  --output /path/to/wpca.json \
+  --output-time /path/to/wpca_time.json   # optional
+
+python legislature-data-analyses/wpca/outputs/output_flourish_table.py \
+  --input /path/to/wpca.json \
+  --output /path/to/wpca_flourish.csv
+
+python legislature-data-analyses/wpca/outputs/output_flourish_table.py \
+  --input /path/to/wpca_time.json \
+  --output /path/to/wpca_time_flourish.csv \
+  --time
+```
+
+**Example definition file:**
+
+```json
+{
+  "lo_limit": 0.1,
+  "yes_options": ["yes"],
+  "no_options": ["no", "abstain"],
+  "absent_options": ["absent", "before oath"],
+  "rotate": { "voter_id": "6074", "dims": [1, 1, 1] },
+  "time_interval": "half-year",
+  "n_dims": 3
+}
+```
+
+**Tests:**
+
+```bash
+pytest wpca/tests/
 ```
