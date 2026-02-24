@@ -110,6 +110,94 @@ pytest vote-corrections/tests/
 
 ---
 
+### Rebelity
+
+Per-member rate of voting against their own parliamentary group's majority direction (*rebelity* = rebellion rate).
+
+**Inputs (all CLI arguments):**
+
+| Argument | Description |
+|---|---|
+| `--definition` | `rebelity-definition.dt.analyses` JSON (vote option encoding, date bounds) |
+| `--votes` | `votes-table.dt` CSV |
+| `--vote_events` | `vote-events.dt` JSON |
+| `--persons` | `all-members.dt.analyses` JSON or CSV |
+| `--output` | output JSON path |
+| `--since` | optional ISO date override (start) |
+| `--until` | optional ISO date override (end) |
+
+**Vote semantics:** `yes_options` → +1, `no_options` → −1, other present options (e.g. abstain) → −1 for group direction but 0 active, `absent_options` → 0. Group direction = sign of the sum of vote values for all group members in that event. Rebelity denominator = vote events where the group had a clear direction (≠ 0), regardless of the MP's presence.
+
+**Output fields per person:** `person_id`, `name`, `given_names`, `family_names`, `organizations`, `rebelity_total`, `rebelity_possible`, `rebelity`, `since`, `until`, `extras`
+
+**Flourish output:** `id`, `name`, `photo`, `candidate_list`, `group`, `constituency`, `rebelity`, `rebelity_percent`, `rebelity_total`, `rebelity_possible`
+
+```bash
+# Run from the legislature-data/ monorepo root
+python legislature-data-analyses/rebelity/rebelity.py \
+  --definition /path/to/rebelity_definition.json \
+  --votes /path/to/votes.csv \
+  --vote_events /path/to/vote_events.json \
+  --persons /path/to/all_members.json \
+  --output /path/to/rebelity.json
+
+python legislature-data-analyses/rebelity/outputs/output_flourish_table.py \
+  --input /path/to/rebelity.json \
+  --output /path/to/rebelity_flourish.csv
+```
+
+**Tests:**
+
+```bash
+pytest rebelity/tests/
+```
+
+---
+
+### Govity
+
+Per-member rate of voting with the government's direction (*govity* = government alignment rate).
+
+**Inputs (all CLI arguments):**
+
+| Argument | Description |
+|---|---|
+| `--definition` | `govity-definition.dt.analyses` JSON (vote option encoding, government group/member IDs, date bounds) |
+| `--votes` | `votes-table.dt` CSV |
+| `--vote_events` | `vote-events.dt` JSON |
+| `--persons` | `all-members.dt.analyses` JSON or CSV |
+| `--output` | output JSON path |
+| `--since` | optional ISO date override (start) |
+| `--until` | optional ISO date override (end) |
+
+**Vote semantics:** same as rebelity. Government direction = sign of the sum of vote values for all government members in that event. Govity denominator = vote events where the government had a clear direction AND the MP was present. Govity numerator = subset where the MP was present and did not actively vote against the government.
+
+**Output fields per person:** `person_id`, `name`, `given_names`, `family_names`, `organizations`, `govity_total`, `govity_possible`, `govity`, `since`, `until`, `extras`
+
+**Flourish output:** `id`, `name`, `photo`, `candidate_list`, `group`, `constituency`, `govity`, `govity_percent`, `govity_total`, `govity_possible`
+
+```bash
+# Run from the legislature-data/ monorepo root
+python legislature-data-analyses/govity/govity.py \
+  --definition /path/to/govity_definition.json \
+  --votes /path/to/votes.csv \
+  --vote_events /path/to/vote_events.json \
+  --persons /path/to/all_members.json \
+  --output /path/to/govity.json
+
+python legislature-data-analyses/govity/outputs/output_flourish_table.py \
+  --input /path/to/govity.json \
+  --output /path/to/govity_flourish.csv
+```
+
+**Tests:**
+
+```bash
+pytest govity/tests/
+```
+
+---
+
 ### WPCA (Weighted PCA)
 
 Per-member ideological positions derived from weighted principal component analysis of the full voting record. Two vote-event weights are applied before PCA: **w1** (participation fraction) and **w2** (split balance, 1 = 50/50, 0 = unanimous). Optionally computes rolling time-interval projections using the global eigenbasis.
