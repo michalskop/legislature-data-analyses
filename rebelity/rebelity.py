@@ -100,11 +100,10 @@ def load_votes(path: str) -> list[dict]:
     if not isinstance(data, list):
         sys.exit(f"votes '{path}' must be a list/array")
     row_schema = load_schema("votes_row")
-    for i, row in enumerate(data):
-        try:
-            jsonschema.validate(instance=dict(row), schema=row_schema)
-        except jsonschema.ValidationError as e:
-            sys.exit(f"votes '{path}' row {i} failed schema validation: {e.message}")
+    try:
+        jsonschema.validate(instance=data, schema={"type": "array", "items": row_schema})
+    except jsonschema.ValidationError as e:
+        sys.exit(f"votes '{path}' failed schema validation: {e.message}")
     return data
 
 
